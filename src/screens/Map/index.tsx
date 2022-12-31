@@ -11,6 +11,7 @@ import Icon from '../../assets/icons';
 import {CarIcon} from '../../assets/icons/svg';
 import {SafeView} from './styles';
 import ModalPanel from '../../components/ModalPanel';
+import ModalAddressSearch from '../../components/ModalAddressSearch';
 import theme from '../../theme';
 import {isObjectEmpty} from '../../services/utils';
 
@@ -19,7 +20,6 @@ const Map = () => {
     userLocationInfo,
     providerLocationInfo,
     setProviderLocationInfo,
-    getLocationByAddress,
   } = useGeolocation();
   const mapRef = useRef(null);
   const interval = useRef(0);
@@ -33,40 +33,41 @@ const Map = () => {
     [providerLocationInfo.location],
   );
 
+  const finishService = () => {
+    clearInterval(interval.current);
+  };
+
   console.log(providerLocationInfo);
 
   useEffect(() => {
-    try {
-      getLocationByAddress('Rua Vitorio Brendolan 470');
-    } catch (error) {
-      console.log(error);
-    }
-  }, []);
-
-  useEffect(() => {
-    interval.current = setInterval(() => {
-      setProviderLocationInfo(oldLocation => {
-        if (oldLocation?.location) {
+    if (
+      !isObjectEmpty(userLocationInfo) &&
+      !isObjectEmpty(providerLocationInfo)
+    ) {
+      interval.current = setInterval(() => {
+        setProviderLocationInfo(oldLocation => {
+          if (oldLocation?.location) {
+            return {
+              ...oldLocation,
+              location: {
+                latitude: oldLocation?.location?.latitude - 0.001,
+                longitude: oldLocation?.location?.longitude - 0.001,
+              },
+            };
+          }
           return {
             ...oldLocation,
-            location: {
-              latitude: oldLocation?.location?.latitude - 0.001,
-              longitude: oldLocation?.location?.longitude - 0.001,
-            },
           };
-        }
-        return {
-          ...oldLocation,
-        };
-      });
-    }, 1000);
-  }, []);
+        });
+      }, 1000);
+    }
+  }, [userLocationInfo.address, providerLocationInfo.address]);
 
   useEffect(() => {
-    setTimeout(() => {
-      clearInterval(interval.current);
-    }, 10000);
-  }, []);
+    if (interval.current !== 0) {
+      setTimeout(() => finishService(), 10000);
+    }
+  }, [interval.current]);
 
   useEffect(() => {
     if (providerLocationInfo?.location) {
@@ -119,14 +120,19 @@ const Map = () => {
           </>
         ) : null}
       </Animated>
-      <ModalPanel
-        theme={theme}
-        userLocationAddress={userLocationInfo.address}
-        providerLocationAddress={providerLocationInfo.address}
-        distance="0.2 km"
-        time="2 min"
-        price="$25.00"
-      />
+      <ModalAddressSearch />
+      {!isObjectEmpty(userLocationInfo) &&
+      !isObjectEmpty(providerLocationInfo) ? (
+        <ModalPanel
+          theme={theme}
+          userLocationAddress={userLocationInfo.address}
+          providerLocationAddress={providerLocationInfo.address}
+          distance="0.2 km"
+          time="2 min"
+          price="$25.00"
+          finishService={finishService}
+        />
+      ) : null}
     </SafeView>
   );
 };

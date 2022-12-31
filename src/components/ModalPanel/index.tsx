@@ -33,6 +33,7 @@ type ModalPanelProps = ThemeProps<DefaultTheme> & {
   distance: string | undefined;
   time: string | undefined;
   price: string | undefined;
+  finishService(): void;
 };
 
 const ModalPanel = ({
@@ -42,6 +43,7 @@ const ModalPanel = ({
   time,
   price,
   theme,
+  finishService,
 }: ModalPanelProps) => {
   return (
     <Container>
@@ -95,12 +97,12 @@ const ModalPanel = ({
         <LocationAddressContainer>
           <LocationAddressTextContainer firstItem>
             <LocationAddress numberOfLines={1}>
-              {userLocationAddress}
+              {providerLocationAddress}
             </LocationAddress>
           </LocationAddressTextContainer>
           <LocationAddressTextContainer>
             <LocationAddress numberOfLines={1}>
-              {providerLocationAddress}
+              {userLocationAddress}
             </LocationAddress>
           </LocationAddressTextContainer>
         </LocationAddressContainer>
@@ -125,7 +127,7 @@ const ModalPanel = ({
           <DistanceInfoText>{price}</DistanceInfoText>
         </DistanceInfoTextContainer>
       </DistanceInfo>
-      <CancelButton>
+      <CancelButton onPress={() => finishService()}>
         <CancelButtonText>Cancel Request</CancelButtonText>
       </CancelButton>
     </Container>
