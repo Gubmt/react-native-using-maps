@@ -1,4 +1,5 @@
 import React, {
+  useEffect,
   useState,
   createContext,
   ReactNode,
@@ -9,7 +10,7 @@ import React, {
 import axios from 'axios';
 
 type User = {
-  location?: LocationType;
+  location: LocationType;
   address?: string;
 };
 
@@ -57,19 +58,42 @@ function LocationProvider({children}: ILocationProvider) {
           },
           address: formatted_address,
         });
-
-        setProviderLocationInfo({
-          location: {
-            latitude: geometry.location.lat + 0.09,
-            longitude: geometry.location.lng + 0.09,
-          },
-          address: formatted_address,
-        });
       })
       .catch(error => {
         throw new Error(error);
       });
   };
+
+  const getAddressByLocation = async () => {
+    if (userLocationInfo.location) {
+      const lat = userLocationInfo.location.latitude + 0.01;
+      const lng = userLocationInfo.location.longitude + 0.01;
+
+      return axios
+        .get(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=AIzaSyA7Ef0CvwLwFPEAfwMt57RSzP0LYXtanEI`,
+        )
+        .then(data => {
+          const {formatted_address} = data.data.results[0];
+          setProviderLocationInfo({
+            location: {
+              latitude: lat,
+              longitude: lng,
+            },
+            address: formatted_address,
+          });
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
+    }
+  };
+
+  useEffect(() => {
+    if (userLocationInfo.location) {
+      getAddressByLocation();
+    }
+  }, [userLocationInfo.location]);
 
   return (
     <LocationContext.Provider

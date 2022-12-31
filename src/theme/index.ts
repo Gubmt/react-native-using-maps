@@ -9,5 +9,7 @@ export default {
     BLUE_400: '#4252ff',
 
     GREEN_400: '#4ce5b1',
+
+    RED_400: '#F52D56',
   },
 };

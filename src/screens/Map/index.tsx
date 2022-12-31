@@ -6,35 +6,13 @@ import {
   MarkerAnimated,
   Animated,
 } from 'react-native-maps';
-
 import {useGeolocation} from '../../hooks/useGeolocation';
 import Icon from '../../assets/icons';
-import {LineIcon} from '../../assets/icons/svg';
-import {
-  SafeView,
-  Container,
-  ProviderInfoContainer,
-  ProviderInfo,
-  ProviderImage,
-  ProviderInfoText,
-  ProviderName,
-  ProviderRate,
-  ProviderButtonContainer,
-  ProviderMessage,
-  ProviderPhone,
-  LocationInfo,
-  LocationIconContainer,
-  BaseIcon,
-  LocationAddressContainer,
-  LocationAddressTextContainer,
-  LocationAddress,
-  DistanceInfo,
-  DistanceInfoTextContainer,
-  DistanceInfoLabelText,
-  DistanceInfoText,
-  CancelButton,
-  CancelButtonText,
-} from './styles';
+import {CarIcon} from '../../assets/icons/svg';
+import {SafeView} from './styles';
+import ModalPanel from '../../components/ModalPanel';
+import theme from '../../theme';
+import {isObjectEmpty} from '../../services/utils';
 
 const Map = () => {
   const {
@@ -114,7 +92,8 @@ const Map = () => {
   return (
     <SafeView style={{flex: 1}}>
       <Animated ref={mapRef} style={{flex: 1}} loadingEnabled provider="google">
-        {userLocationInfo?.location ? (
+        {!isObjectEmpty(userLocationInfo) &&
+        !isObjectEmpty(providerLocationInfo) ? (
           <>
             <Marker
               coordinate={{
@@ -122,74 +101,32 @@ const Map = () => {
                 longitude: userLocationInfo?.location?.longitude,
               }}
               identifier="user"
-            />
+            >
+              <Icon
+                name="PinIcon"
+                width="32"
+                height="41"
+                fill={theme.COLORS.RED_400}
+              />
+            </Marker>
             <MarkerAnimated
               coordinate={winchLocation}
               pinColor="#333"
               identifier="Winch"
-            />
+            >
+              <CarIcon width="32" height="36" />
+            </MarkerAnimated>
           </>
         ) : null}
       </Animated>
-      <Container>
-        <ProviderInfoContainer>
-          <ProviderInfo>
-            <ProviderImage
-              source={require('../../assets/images/Provider.png')}
-            />
-            <ProviderInfoText>
-              <ProviderName>Gregory Smith</ProviderName>
-              <ProviderRate>
-                <Icon name="StarIcon" width="16" height="16" fill="#FFCC00" />{' '}
-                4.9
-              </ProviderRate>
-            </ProviderInfoText>
-          </ProviderInfo>
-          <ProviderButtonContainer>
-            <ProviderMessage>
-              <Icon name="MessageIcon" width="22" height="22" fill="#fff" />
-            </ProviderMessage>
-            <ProviderPhone>
-              <Icon name="PhoneIcon" width="22" height="22" fill="#fff" />
-            </ProviderPhone>
-          </ProviderButtonContainer>
-        </ProviderInfoContainer>
-        <LocationInfo>
-          <LocationIconContainer>
-            <BaseIcon>
-              <Icon name="BaseIcon" width="10" height="10" fill="#4CE5B1" />
-            </BaseIcon>
-            <LineIcon width="3" height="24" fill="#C8C7CC" />
-            <Icon name="PinIcon" width="22" height="22" fill="#F52D56" />
-          </LocationIconContainer>
-          <LocationAddressContainer>
-            <LocationAddressTextContainer firstItem>
-              <LocationAddress>7958 Swift Village</LocationAddress>
-            </LocationAddressTextContainer>
-            <LocationAddressTextContainer>
-              <LocationAddress>105 William St, Chicago US </LocationAddress>
-            </LocationAddressTextContainer>
-          </LocationAddressContainer>
-        </LocationInfo>
-        <DistanceInfo>
-          <Icon name="VehicleIcon" width="50" height="21" fill="#242E42" />
-          <DistanceInfoTextContainer>
-            <DistanceInfoLabelText>DISTANCE</DistanceInfoLabelText>
-            <DistanceInfoText>0.2 km</DistanceInfoText>
-          </DistanceInfoTextContainer>
-          <DistanceInfoTextContainer>
-            <DistanceInfoLabelText>TIME</DistanceInfoLabelText>
-            <DistanceInfoText>2 min</DistanceInfoText>
-          </DistanceInfoTextContainer>
-          <DistanceInfoTextContainer>
-            <DistanceInfoLabelText>PRICE</DistanceInfoLabelText>
-            <DistanceInfoText>$25.00</DistanceInfoText>
-          </DistanceInfoTextContainer>
-        </DistanceInfo>
-        <CancelButton>
-          <CancelButtonText>Cancel Request</CancelButtonText>
-        </CancelButton>
-      </Container>
+      <ModalPanel
+        theme={theme}
+        userLocationAddress={userLocationInfo.address}
+        providerLocationAddress={providerLocationInfo.address}
+        distance="0.2 km"
+        time="2 min"
+        price="$25.00"
+      />
     </SafeView>
   );
 };
