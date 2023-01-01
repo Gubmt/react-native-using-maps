@@ -1,8 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {Alert} from 'react-native';
 import {useGeolocation} from '../../hooks/useGeolocation';
-import {isObjectEmpty} from '../../services/utils';
 import {
   Container,
   AddressSearchLabel,
@@ -14,11 +13,7 @@ import {
 const ModalAddressSearch = () => {
   const [address, setAddress] = useState('');
 
-  const {
-    userLocationInfo,
-    providerLocationInfo,
-    getLocationByAddress,
-  } = useGeolocation();
+  const {getLocationByAddress} = useGeolocation();
 
   const handleSearchLocationByAddress = () => {
     if (address !== '') {
@@ -29,8 +24,6 @@ const ModalAddressSearch = () => {
       }
     }
   };
-
-  console.log('AQUI', userLocationInfo, providerLocationInfo);
 
   return (
     <Container>

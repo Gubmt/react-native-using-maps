@@ -70,8 +70,8 @@ const Map = () => {
             return {
               ...oldLocation,
               location: {
-                latitude: oldLocation?.location?.latitude - 0.0001,
-                longitude: oldLocation?.location?.longitude - 0.0001,
+                latitude: oldLocation?.location?.latitude - 0.001,
+                longitude: oldLocation?.location?.longitude - 0.001,
               },
             };
           }
@@ -120,6 +120,8 @@ const Map = () => {
     }
   }, [providerLocationInfo.location, winchLocation]);
 
+  console.log(providerLocationInfo.location);
+
   return (
     <SafeView style={{flex: 1}}>
       <Animated ref={mapRef} style={{flex: 1}} loadingEnabled provider="google">
@@ -161,9 +163,9 @@ const Map = () => {
           theme={theme}
           userLocationAddress={userLocationInfo.address}
           providerLocationAddress={providerLocationInfo.address}
-          distance="0.2 km"
-          time="2 min"
-          price="$25.00"
+          distance={providerLocationInfo.distance}
+          time={providerLocationInfo.duration}
+          price={providerLocationInfo.price}
           finishService={finishService}
         />
       ) : null}

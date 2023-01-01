@@ -18,13 +18,15 @@ type User = {
 
 type Provider = User & {
   duration?: string;
+  durationInSeconds?: number;
   distance?: string;
   price?: string;
 };
 
-export type LocationType = {
+type LocationType = {
   latitude: number;
   longitude: number;
+  placeId?: string;
 };
 
 type ILocationContextData = {
@@ -54,13 +56,13 @@ function LocationProvider({children}: ILocationProvider) {
         `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=AIzaSyA7Ef0CvwLwFPEAfwMt57RSzP0LYXtanEI`,
       )
       .then(data => {
-        console.log(data.data);
         if (data.data.results.length) {
-          const {geometry, formatted_address} = data.data.results[0];
+          const {geometry, formatted_address, place_id} = data.data.results[0];
           setUserLocationInfo({
             location: {
               latitude: geometry.location.lat,
               longitude: geometry.location.lng,
+              placeId: place_id,
             },
             address: formatted_address,
           });
@@ -86,14 +88,53 @@ function LocationProvider({children}: ILocationProvider) {
         )
         .then(data => {
           if (data.data.results.length) {
-            const {formatted_address} = data.data.results[0];
+            const {formatted_address, place_id} = data.data.results[0];
             setProviderLocationInfo({
               location: {
                 latitude: lat,
                 longitude: lng,
+                placeId: place_id,
               },
               address: formatted_address,
             });
+          } else {
+            setProviderLocationInfo({
+              error: data.data.status,
+            });
+          }
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
+    }
+  };
+
+  const getDurationAndDistance = async () => {
+    if (
+      userLocationInfo.location?.placeId &&
+      providerLocationInfo?.location?.placeId
+    ) {
+      const destination = userLocationInfo.location.placeId;
+      const origin = providerLocationInfo.location.placeId;
+
+      console.log(destination, origin);
+
+      return axios
+        .get(
+          `https://maps.googleapis.com/maps/api/distancematrix/json?departure_time=now&destinations=place_id:${destination}&origins=place_id:${origin}&key=AIzaSyA7Ef0CvwLwFPEAfwMt57RSzP0LYXtanEI`,
+        )
+        .then(data => {
+          if (data.data.rows.length) {
+            const {distance, duration, fare} = data.data.rows[0].elements[0];
+            console.log(duration);
+            setProviderLocationInfo(oldProvider => ({
+              ...oldProvider,
+              distance: distance.text,
+              duration: duration.text,
+              durationInSeconds: Number(duration.value) * 1000,
+              price:
+                fare?.text || `$ ${(Number(distance.value) * 0.01).toFixed(2)}`,
+            }));
           } else {
             setProviderLocationInfo({
               error: data.data.status,
@@ -111,6 +152,12 @@ function LocationProvider({children}: ILocationProvider) {
       getAddressByLocation();
     }
   }, [userLocationInfo.location]);
+
+  useEffect(() => {
+    if (userLocationInfo.location && providerLocationInfo.location) {
+      getDurationAndDistance();
+    }
+  }, [userLocationInfo.location, providerLocationInfo.location]);
 
   return (
     <LocationContext.Provider
