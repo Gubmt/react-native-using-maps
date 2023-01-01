@@ -1,5 +1,8 @@
-import React, {useState} from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, {useEffect, useState} from 'react';
+import {Alert} from 'react-native';
 import {useGeolocation} from '../../hooks/useGeolocation';
+import {isObjectEmpty} from '../../services/utils';
 import {
   Container,
   AddressSearchLabel,
@@ -14,15 +17,20 @@ const ModalAddressSearch = () => {
   const {
     userLocationInfo,
     providerLocationInfo,
-    setProviderLocationInfo,
     getLocationByAddress,
   } = useGeolocation();
 
   const handleSearchLocationByAddress = () => {
     if (address !== '') {
-      getLocationByAddress(address);
+      try {
+        getLocationByAddress(address);
+      } catch (error) {
+        Alert.alert('Erro', 'Erro ao buscar endereço. Tente novamente.');
+      }
     }
   };
+
+  console.log('AQUI', userLocationInfo, providerLocationInfo);
 
   return (
     <Container>

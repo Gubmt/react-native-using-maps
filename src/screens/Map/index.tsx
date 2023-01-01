@@ -1,5 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useState, useMemo, useRef} from 'react';
+import {Alert} from 'react-native';
 import {
   Marker,
   AnimatedRegion,
@@ -16,13 +18,14 @@ import theme from '../../theme';
 import {isObjectEmpty} from '../../services/utils';
 
 const Map = () => {
+  const [trip, setTrip] = useState(0);
   const {
     userLocationInfo,
     providerLocationInfo,
+    setUserLocationInfo,
     setProviderLocationInfo,
   } = useGeolocation();
   const mapRef = useRef(null);
-  const interval = useRef(0);
 
   const winchLocation = useMemo(
     () =>
@@ -34,24 +37,41 @@ const Map = () => {
   );
 
   const finishService = () => {
-    clearInterval(interval.current);
+    clearInterval(trip);
+    setUserLocationInfo({});
+    setProviderLocationInfo({});
   };
 
-  console.log(providerLocationInfo);
+  useEffect(() => {
+    if (userLocationInfo.error) {
+      Alert.alert('Erro', 'Nenhum endereço encontrado', [
+        {
+          text: 'Tentar novamente',
+          onPress: () => {
+            setUserLocationInfo({});
+            setProviderLocationInfo({});
+          },
+        },
+      ]);
+    }
+    if (providerLocationInfo.error) {
+      Alert.alert('Erro', 'Nenhum guincho encontrado');
+    }
+  }, [userLocationInfo.error, providerLocationInfo.error]);
 
   useEffect(() => {
     if (
       !isObjectEmpty(userLocationInfo) &&
       !isObjectEmpty(providerLocationInfo)
     ) {
-      interval.current = setInterval(() => {
+      const interval = setInterval(() => {
         setProviderLocationInfo(oldLocation => {
           if (oldLocation?.location) {
             return {
               ...oldLocation,
               location: {
-                latitude: oldLocation?.location?.latitude - 0.001,
-                longitude: oldLocation?.location?.longitude - 0.001,
+                latitude: oldLocation?.location?.latitude - 0.0001,
+                longitude: oldLocation?.location?.longitude - 0.0001,
               },
             };
           }
@@ -60,21 +80,22 @@ const Map = () => {
           };
         });
       }, 1000);
+      setTrip(interval);
     }
   }, [userLocationInfo.address, providerLocationInfo.address]);
 
   useEffect(() => {
-    if (interval.current !== 0) {
-      setTimeout(() => finishService(), 10000);
+    if (trip !== 0) {
+      setTimeout(() => finishService(), 11000);
     }
-  }, [interval.current]);
+  }, [trip]);
 
   useEffect(() => {
     if (providerLocationInfo?.location) {
       winchLocation
         .timing({
-          latitude: providerLocationInfo.location?.latitude,
-          longitude: providerLocationInfo.location?.longitude,
+          latitude: providerLocationInfo.location?.latitude || 0,
+          longitude: providerLocationInfo.location?.longitude || 0,
           duration: 150,
           toValue: 0,
           useNativeDriver: false,
@@ -83,7 +104,16 @@ const Map = () => {
         })
         .start(() => {
           setTimeout(
-            () => mapRef?.current?.fitToSuppliedMarkers(['user', 'Winch']),
+            () =>
+              mapRef?.current?.fitToSuppliedMarkers(['User', 'Winch'], {
+                animated: true,
+                edgePadding: {
+                  top: 0,
+                  right: 100,
+                  bottom: 350,
+                  left: 50,
+                },
+              }),
             200,
           );
         });
@@ -101,7 +131,7 @@ const Map = () => {
                 latitude: userLocationInfo?.location?.latitude,
                 longitude: userLocationInfo?.location?.longitude,
               }}
-              identifier="user"
+              identifier="User"
             >
               <Icon
                 name="PinIcon"
@@ -120,7 +150,11 @@ const Map = () => {
           </>
         ) : null}
       </Animated>
-      <ModalAddressSearch />
+      {isObjectEmpty(userLocationInfo) &&
+      isObjectEmpty(providerLocationInfo) ? (
+        <ModalAddressSearch />
+      ) : null}
+
       {!isObjectEmpty(userLocationInfo) &&
       !isObjectEmpty(providerLocationInfo) ? (
         <ModalPanel
