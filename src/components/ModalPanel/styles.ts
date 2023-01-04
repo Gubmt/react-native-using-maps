@@ -1,5 +1,6 @@
 import {ViewProps} from 'react-native';
 import styled, {DefaultTheme, ThemeProps} from 'styled-components/native';
+import {IS_ANDROID} from '../../constants';
 
 type AddressContainerProps = ThemeProps<DefaultTheme> &
   ViewProps & {
@@ -8,7 +9,7 @@ type AddressContainerProps = ThemeProps<DefaultTheme> &
 
 export const Container = styled.View`
   position: absolute;
-  bottom: 42px;
+  bottom: ${IS_ANDROID ? '2%' : '8%'};
   left: 5%;
   width: 90%;
   padding-bottom: 20px;

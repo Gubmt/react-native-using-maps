@@ -53,7 +53,13 @@ const ModalPanel = ({
           <ProviderInfoText>
             <ProviderName>Gregory Smith</ProviderName>
             <ProviderRate>
-              <Icon name="StarIcon" width="16" height="16" fill="#FFCC00" /> 4.9
+              <Icon
+                name="StarIcon"
+                width="16"
+                height="16"
+                fill={theme.COLORS.YELLOW_400}
+              />{' '}
+              4.9
             </ProviderRate>
           </ProviderInfoText>
         </ProviderInfo>

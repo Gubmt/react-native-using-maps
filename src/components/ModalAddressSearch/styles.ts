@@ -1,5 +1,6 @@
 import {TouchableOpacityProps, TextInputProps, ColorValue} from 'react-native';
 import styled, {DefaultTheme, ThemeProps} from 'styled-components/native';
+import {IS_ANDROID} from '../../constants';
 
 type InputAddressProps = ThemeProps<DefaultTheme> &
   TextInputProps & {
@@ -9,7 +10,7 @@ type SearchButtonProps = ThemeProps<DefaultTheme> & TouchableOpacityProps;
 
 export const Container = styled.View`
   position: absolute;
-  top: 10%;
+  top: ${IS_ANDROID ? '2%' : '10%'};
   left: 5%;
   width: 90%;
   padding: 20px 0;

@@ -8,7 +8,8 @@ import {
   MarkerAnimated,
   Animated,
 } from 'react-native-maps';
-import {useGeolocation} from '../../hooks/useGeolocation';
+import MapViewDirections from 'react-native-maps-directions';
+import {LocationType, useGeolocation} from '../../hooks/useGeolocation';
 import Icon from '../../assets/icons';
 import {CarIcon} from '../../assets/icons/svg';
 import {SafeView} from './styles';
@@ -16,87 +17,90 @@ import ModalPanel from '../../components/ModalPanel';
 import ModalAddressSearch from '../../components/ModalAddressSearch';
 import theme from '../../theme';
 import {isObjectEmpty} from '../../services/utils';
+import ModalLoading from '../../components/ModalLoading';
 
 const Map = () => {
-  const [trip, setTrip] = useState(0);
+  const [trip, setTrip] = useState<number>(0);
+  const [location, setLocation] = useState<LocationType[]>([]);
   const {
-    userLocationInfo,
     providerLocationInfo,
+    userLocationInfo,
     setUserLocationInfo,
     setProviderLocationInfo,
+    error,
+    setError,
+    loading,
   } = useGeolocation();
   const mapRef = useRef(null);
+  const {GOOGLE_MAPS_APIKEY} = process.env;
 
   const winchLocation = useMemo(
     () =>
       new AnimatedRegion({
-        latitude: providerLocationInfo.location?.latitude,
-        longitude: providerLocationInfo.location?.longitude,
+        latitude: providerLocationInfo?.location?.latitude || 0,
+        longitude: providerLocationInfo?.location?.longitude || 0,
       }),
-    [providerLocationInfo.location],
+    [providerLocationInfo],
   );
 
-  const finishService = () => {
-    clearInterval(trip);
+  const finishService = (interval: number) => {
+    setTrip(0);
+    clearInterval(interval);
     setUserLocationInfo({});
     setProviderLocationInfo({});
+    setLocation([]);
   };
 
   useEffect(() => {
-    if (userLocationInfo.error) {
-      Alert.alert('Erro', 'Nenhum endereço encontrado', [
+    if (error) {
+      Alert.alert('Erro', 'Erro ao solicitar serviço', [
         {
           text: 'Tentar novamente',
           onPress: () => {
-            setUserLocationInfo({});
-            setProviderLocationInfo({});
+            finishService(trip);
           },
         },
       ]);
     }
-    if (providerLocationInfo.error) {
-      Alert.alert('Erro', 'Nenhum guincho encontrado');
-    }
-  }, [userLocationInfo.error, providerLocationInfo.error]);
+  }, [error]);
 
   useEffect(() => {
     if (
-      !isObjectEmpty(userLocationInfo) &&
-      !isObjectEmpty(providerLocationInfo)
+      userLocationInfo.address &&
+      providerLocationInfo.distance &&
+      location.length > 0
     ) {
-      const interval = setInterval(() => {
-        setProviderLocationInfo(oldLocation => {
-          if (oldLocation?.location) {
-            return {
-              ...oldLocation,
-              location: {
-                latitude: oldLocation?.location?.latitude - 0.001,
-                longitude: oldLocation?.location?.longitude - 0.001,
-              },
-            };
+      if (!trip) {
+        let number = location.length - 1;
+        const interval = setInterval(() => {
+          if (number >= 0) {
+            setProviderLocationInfo(oldService => {
+              return {
+                ...oldService,
+                location: location[number],
+              };
+            });
+            number = number - 1;
+          } else {
+            finishService(interval);
           }
-          return {
-            ...oldLocation,
-          };
-        });
-      }, 1000);
-      setTrip(interval);
+        }, 2000);
+        setTrip(interval);
+      }
     }
-  }, [userLocationInfo.address, providerLocationInfo.address]);
+  }, [
+    userLocationInfo.address,
+    providerLocationInfo.distance,
+    location.length,
+  ]);
 
   useEffect(() => {
-    if (trip !== 0) {
-      setTimeout(() => finishService(), 11000);
-    }
-  }, [trip]);
-
-  useEffect(() => {
-    if (providerLocationInfo?.location) {
+    if (!isObjectEmpty(providerLocationInfo)) {
       winchLocation
         .timing({
-          latitude: providerLocationInfo.location?.latitude || 0,
-          longitude: providerLocationInfo.location?.longitude || 0,
-          duration: 150,
+          latitude: providerLocationInfo?.location?.latitude || 0,
+          longitude: providerLocationInfo?.location?.longitude || 0,
+          duration: 2000,
           toValue: 0,
           useNativeDriver: false,
           latitudeDelta: 1,
@@ -105,12 +109,12 @@ const Map = () => {
         .start(() => {
           setTimeout(
             () =>
-              mapRef?.current?.fitToSuppliedMarkers(['User', 'Winch'], {
+              mapRef?.current?.fitToCoordinates(location, {
                 animated: true,
                 edgePadding: {
-                  top: 0,
-                  right: 100,
-                  bottom: 350,
+                  top: 50,
+                  right: 50,
+                  bottom: 400,
                   left: 50,
                 },
               }),
@@ -120,21 +124,12 @@ const Map = () => {
     }
   }, [providerLocationInfo.location, winchLocation]);
 
-  console.log(providerLocationInfo.location);
-
   return (
     <SafeView style={{flex: 1}}>
       <Animated ref={mapRef} style={{flex: 1}} loadingEnabled provider="google">
-        {!isObjectEmpty(userLocationInfo) &&
-        !isObjectEmpty(providerLocationInfo) ? (
+        {userLocationInfo.location && winchLocation ? (
           <>
-            <Marker
-              coordinate={{
-                latitude: userLocationInfo?.location?.latitude,
-                longitude: userLocationInfo?.location?.longitude,
-              }}
-              identifier="User"
-            >
+            <Marker coordinate={userLocationInfo?.location} identifier="User">
               <Icon
                 name="PinIcon"
                 width="32"
@@ -144,19 +139,37 @@ const Map = () => {
             </Marker>
             <MarkerAnimated
               coordinate={winchLocation}
-              pinColor="#333"
               identifier="Winch"
+              rotation={0}
             >
               <CarIcon width="32" height="36" />
             </MarkerAnimated>
+
+            <MapViewDirections
+              origin={userLocationInfo?.location}
+              destination={providerLocationInfo?.location}
+              apikey={`${GOOGLE_MAPS_APIKEY}`}
+              strokeWidth={4}
+              strokeColor={theme.COLORS.PURPLE_400}
+              onReady={result => {
+                setProviderLocationInfo(oldService => ({
+                  ...oldService,
+                  distance: `${result.distance.toFixed(1)} km`,
+                  duration: `${Math.ceil(result.duration)} min`,
+                  price: '$ 25.00',
+                  location: result.coordinates[result.coordinates.length - 1],
+                }));
+                setLocation(result.coordinates);
+              }}
+              onError={errorMessage => {
+                setError(errorMessage);
+              }}
+            />
           </>
         ) : null}
       </Animated>
-      {isObjectEmpty(userLocationInfo) &&
-      isObjectEmpty(providerLocationInfo) ? (
-        <ModalAddressSearch />
-      ) : null}
-
+      {isObjectEmpty(userLocationInfo) ? <ModalAddressSearch /> : null}
+      {loading ? <ModalLoading /> : null}
       {!isObjectEmpty(userLocationInfo) &&
       !isObjectEmpty(providerLocationInfo) ? (
         <ModalPanel
@@ -166,7 +179,7 @@ const Map = () => {
           distance={providerLocationInfo.distance}
           time={providerLocationInfo.duration}
           price={providerLocationInfo.price}
-          finishService={finishService}
+          finishService={() => finishService(trip)}
         />
       ) : null}
     </SafeView>
