@@ -1,7 +1,14 @@
 import React from 'react';
-import Icon from '../../assets/icons';
+import {
+  StarIcon,
+  MessageIcon,
+  PhoneIcon,
+  VehicleIcon,
+  PinIcon,
+  BaseIcon,
+} from '../../assets/icons/svg';
 import {LineIcon} from '../../assets/icons/svg';
-import {DefaultTheme, ThemeProps} from 'styled-components/native';
+import {useTheme} from 'styled-components/native';
 import {
   Container,
   ProviderInfoContainer,
@@ -15,7 +22,7 @@ import {
   ProviderPhone,
   LocationInfo,
   LocationIconContainer,
-  BaseIcon,
+  BaseIconContainer,
   LocationAddressContainer,
   LocationAddressTextContainer,
   LocationAddress,
@@ -27,7 +34,7 @@ import {
   CancelButtonText,
 } from './styles';
 
-type ModalPanelProps = ThemeProps<DefaultTheme> & {
+type ModalPanelProps = {
   userLocationAddress: string | undefined;
   providerLocationAddress: string | undefined;
   distance: string | undefined;
@@ -42,9 +49,9 @@ const ModalPanel = ({
   distance,
   time,
   price,
-  theme,
   finishService,
 }: ModalPanelProps) => {
+  const theme = useTheme();
   return (
     <Container>
       <ProviderInfoContainer>
@@ -53,52 +60,27 @@ const ModalPanel = ({
           <ProviderInfoText>
             <ProviderName>Gregory Smith</ProviderName>
             <ProviderRate>
-              <Icon
-                name="StarIcon"
-                width="16"
-                height="16"
-                fill={theme.COLORS.YELLOW_400}
-              />{' '}
+              <StarIcon width="16" height="16" fill={theme.COLORS.YELLOW_400} />{' '}
               4.9
             </ProviderRate>
           </ProviderInfoText>
         </ProviderInfo>
         <ProviderButtonContainer>
           <ProviderMessage>
-            <Icon
-              name="MessageIcon"
-              width="22"
-              height="22"
-              fill={theme.COLORS.WHITE}
-            />
+            <MessageIcon width="28" height="28" fill={theme.COLORS.WHITE} />
           </ProviderMessage>
           <ProviderPhone>
-            <Icon
-              name="PhoneIcon"
-              width="22"
-              height="22"
-              fill={theme.COLORS.WHITE}
-            />
+            <PhoneIcon width="22" height="22" fill={theme.COLORS.WHITE} />
           </ProviderPhone>
         </ProviderButtonContainer>
       </ProviderInfoContainer>
       <LocationInfo>
         <LocationIconContainer>
-          <BaseIcon>
-            <Icon
-              name="BaseIcon"
-              width="10"
-              height="10"
-              fill={theme.COLORS.GREEN_400}
-            />
-          </BaseIcon>
+          <BaseIconContainer>
+            <BaseIcon width="10" height="10" fill={theme.COLORS.GREEN_400} />
+          </BaseIconContainer>
           <LineIcon width="3" height="24" fill={theme.COLORS.GRAY_500} />
-          <Icon
-            name="PinIcon"
-            width="22"
-            height="22"
-            fill={theme.COLORS.RED_400}
-          />
+          <PinIcon width="22" height="22" fill={theme.COLORS.RED_400} />
         </LocationIconContainer>
         <LocationAddressContainer>
           <LocationAddressTextContainer firstItem>
@@ -114,12 +96,7 @@ const ModalPanel = ({
         </LocationAddressContainer>
       </LocationInfo>
       <DistanceInfo>
-        <Icon
-          name="VehicleIcon"
-          width="50"
-          height="21"
-          fill={theme.COLORS.GRAY_1000}
-        />
+        <VehicleIcon width="50" height="21" fill={theme.COLORS.GRAY_1000} />
         <DistanceInfoTextContainer>
           <DistanceInfoLabelText>DISTANCE</DistanceInfoLabelText>
           <DistanceInfoText>{distance}</DistanceInfoText>
@@ -133,7 +110,7 @@ const ModalPanel = ({
           <DistanceInfoText>{price}</DistanceInfoText>
         </DistanceInfoTextContainer>
       </DistanceInfo>
-      <CancelButton onPress={() => finishService()}>
+      <CancelButton testID="cancelButton" onPress={() => finishService()}>
         <CancelButtonText>Cancel Request</CancelButtonText>
       </CancelButton>
     </Container>

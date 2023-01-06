@@ -20,6 +20,7 @@ type Provider = User & {
   durationInSeconds?: number;
   distance?: string;
   price?: string;
+  heading?: number;
 };
 
 export type LocationType = {

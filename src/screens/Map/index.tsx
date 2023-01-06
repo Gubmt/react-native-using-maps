@@ -10,17 +10,16 @@ import {
 } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import {LocationType, useGeolocation} from '../../hooks/useGeolocation';
-import Icon from '../../assets/icons';
-import {CarIcon} from '../../assets/icons/svg';
+import {CarIcon, PinIcon} from '../../assets/icons/svg';
 import {SafeView} from './styles';
 import ModalPanel from '../../components/ModalPanel';
 import ModalAddressSearch from '../../components/ModalAddressSearch';
 import theme from '../../theme';
-import {isObjectEmpty} from '../../services/utils';
+import {getHeadingFromLocation, isObjectEmpty} from '../../services/utils';
 import ModalLoading from '../../components/ModalLoading';
 
 const Map = () => {
-  const [trip, setTrip] = useState<number>(0);
+  const [trip, setTrip] = useState<NodeJS.Timer>();
   const [location, setLocation] = useState<LocationType[]>([]);
   const {
     providerLocationInfo,
@@ -43,7 +42,7 @@ const Map = () => {
     [providerLocationInfo],
   );
 
-  const finishService = (interval: number) => {
+  const finishService = (interval: NodeJS.Timer) => {
     setTrip(0);
     clearInterval(interval);
     setUserLocationInfo({});
@@ -78,8 +77,13 @@ const Map = () => {
               return {
                 ...oldService,
                 location: location[number],
+                heading: getHeadingFromLocation(
+                  location[number],
+                  location[number - 1],
+                ),
               };
             });
+
             number = number - 1;
           } else {
             finishService(interval);
@@ -93,6 +97,8 @@ const Map = () => {
     providerLocationInfo.distance,
     location.length,
   ]);
+
+  console.log(providerLocationInfo.heading);
 
   useEffect(() => {
     if (!isObjectEmpty(providerLocationInfo)) {
@@ -130,17 +136,12 @@ const Map = () => {
         {userLocationInfo.location && winchLocation ? (
           <>
             <Marker coordinate={userLocationInfo?.location} identifier="User">
-              <Icon
-                name="PinIcon"
-                width="32"
-                height="41"
-                fill={theme.COLORS.RED_400}
-              />
+              <PinIcon width="32" height="41" fill={theme.COLORS.RED_400} />
             </Marker>
             <MarkerAnimated
               coordinate={winchLocation}
               identifier="Winch"
-              rotation={0}
+              rotation={214 + (providerLocationInfo.heading || 0)}
             >
               <CarIcon width="32" height="36" />
             </MarkerAnimated>
@@ -152,6 +153,7 @@ const Map = () => {
               strokeWidth={4}
               strokeColor={theme.COLORS.PURPLE_400}
               onReady={result => {
+                console.log(result);
                 setProviderLocationInfo(oldService => ({
                   ...oldService,
                   distance: `${result.distance.toFixed(1)} km`,

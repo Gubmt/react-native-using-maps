@@ -112,7 +112,7 @@ export const LocationIconContainer = styled.View`
   width: 48px;
 `;
 
-export const BaseIcon = styled.View`
+export const BaseIconContainer = styled.View`
   justify-content: center;
   align-items: center;
   height: 20px;
