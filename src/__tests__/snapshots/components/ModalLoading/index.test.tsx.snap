@@ -1,0 +1,52 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ModalLoading Component should render 1`] = `
+<View
+  style={
+    Array [
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderRadius": 8,
+        "elevation": 5,
+        "left": "5%",
+        "paddingBottom": 20,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 20,
+        "position": "absolute",
+        "shadowColor": "rgba(0, 0, 0, 0.1)",
+        "shadowOffset": Object {
+          "height": -5,
+          "width": 0,
+        },
+        "shadowOpacity": 1,
+        "shadowRadius": 20,
+        "top": "45%",
+        "width": "90%",
+      },
+    ]
+  }
+>
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#242e42",
+          "fontFamily": "SF UI Display Semibold",
+          "fontSize": 17,
+          "lineHeight": 20,
+          "marginBottom": 20,
+          "textAlign": "center",
+        },
+      ]
+    }
+  >
+    Procurando um prestador de serviço
+  </Text>
+  <ActivityIndicator
+    color="#242e42"
+    size="large"
+  />
+</View>
+`;

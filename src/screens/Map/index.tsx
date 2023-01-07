@@ -91,19 +91,20 @@ const Map = () => {
         setTrip(Number(interval));
       }
     }
-  }, [
-    userLocationInfo.address,
-    providerLocationInfo.distance,
-    location.length,
-  ]);
+  }, [userLocationInfo, providerLocationInfo, location.length]);
 
   return (
     <SafeView style={{flex: 1}}>
       <MapView ref={mapRef} style={{flex: 1}} loadingEnabled provider="google">
-        {userLocationInfo.location && winchLocation ? (
+        {userLocationInfo?.location && winchLocation ? (
           <>
             <Marker coordinate={userLocationInfo?.location} identifier="User">
-              <PinIcon width="32" height="41" fill={theme.COLORS.RED_400} />
+              <PinIcon
+                width="32"
+                height="41"
+                fill={theme.COLORS.RED_400}
+                testID="PinIcon"
+              />
             </Marker>
             <MarkerAnimated
               coordinate={winchLocation}

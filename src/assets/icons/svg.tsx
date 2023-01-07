@@ -6,6 +6,7 @@ export type IconProps = {
   width: string;
   height: string;
   fill?: string;
+  testID?: string;
 };
 
 export const MessageIcon = (props: IconProps) => (

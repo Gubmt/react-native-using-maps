@@ -17,7 +17,6 @@ type User = {
 
 type Provider = User & {
   duration?: string;
-  durationInSeconds?: number;
   distance?: string;
   price?: string;
   heading?: number;
@@ -38,7 +37,6 @@ type ILocationContextData = {
   error: string | null;
   setError: Dispatch<SetStateAction<string | null>>;
   loading: boolean;
-  setLoading: Dispatch<SetStateAction<boolean>>;
 };
 
 interface ILocationProvider {
@@ -107,7 +105,6 @@ function LocationProvider({children}: ILocationProvider) {
         error,
         setError,
         loading,
-        setLoading,
       }}
     >
       {children}
