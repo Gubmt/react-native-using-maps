@@ -88,7 +88,7 @@ const Map = () => {
             finishService(interval);
           }
         }, 2000);
-        setTrip(Number(interval));
+        setTrip(interval);
       }
     }
   }, [userLocationInfo, providerLocationInfo, location.length]);

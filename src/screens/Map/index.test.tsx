@@ -1,5 +1,5 @@
 import React from 'react';
-import {render} from '@testing-library/react-native';
+import {render, fireEvent} from '@testing-library/react-native';
 import Map from './index';
 import theme from '../../theme';
 import * as utils from '../../services/utils';
@@ -61,5 +61,27 @@ describe('Map Component', () => {
 
     const PinIcon = rendered.getByTestId('PinIcon');
     expect(PinIcon).toBeDefined();
+
+    const CancelButton = rendered.getByTestId('cancelButton');
+    fireEvent.press(CancelButton);
+  });
+
+  it('should render Alert if get error', () => {
+    jest.spyOn(utils, 'isObjectEmpty').mockImplementation(() => false);
+    jest.spyOn(geolocation, 'useGeolocation').mockImplementation(() => ({
+      providerLocationInfo: {},
+      userLocationInfo: {},
+      setUserLocationInfo: () => null,
+      setProviderLocationInfo: () => null,
+      error: 'Error',
+      setError: () => null,
+      loading: false,
+    }));
+    const rendered = render(
+      <ThemeProvider theme={theme}>
+        <Map />
+      </ThemeProvider>,
+    );
+    expect(rendered).toMatchSnapshot();
   });
 });

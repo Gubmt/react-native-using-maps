@@ -54,7 +54,7 @@ exports[`ModalAddressSearch Component should render 1`] = `
     placeholder="Informe seu endereço"
     query={
       Object {
-        "key": "AIzaSyA7Ef0CvwLwFPEAfwMt57RSzP0LYXtanEI",
+        "key": "undefined",
         "language": "en",
       }
     }
