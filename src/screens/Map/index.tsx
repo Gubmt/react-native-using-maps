@@ -2,11 +2,10 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useState, useMemo, useRef} from 'react';
 import {Alert} from 'react-native';
-import {
+import MapView, {
   Marker,
   AnimatedRegion,
   MarkerAnimated,
-  Animated,
 } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import {LocationType, useGeolocation} from '../../hooks/useGeolocation';
@@ -19,7 +18,7 @@ import {getHeadingFromLocation, isObjectEmpty} from '../../services/utils';
 import ModalLoading from '../../components/ModalLoading';
 
 const Map = () => {
-  const [trip, setTrip] = useState<NodeJS.Timer>();
+  const [trip, setTrip] = useState<number>(0);
   const [location, setLocation] = useState<LocationType[]>([]);
   const {
     providerLocationInfo,
@@ -42,7 +41,7 @@ const Map = () => {
     [providerLocationInfo],
   );
 
-  const finishService = (interval: NodeJS.Timer) => {
+  const finishService = (interval: number) => {
     setTrip(0);
     clearInterval(interval);
     setUserLocationInfo({});
@@ -89,7 +88,7 @@ const Map = () => {
             finishService(interval);
           }
         }, 2000);
-        setTrip(interval);
+        setTrip(Number(interval));
       }
     }
   }, [
@@ -98,41 +97,9 @@ const Map = () => {
     location.length,
   ]);
 
-  console.log(providerLocationInfo.heading);
-
-  useEffect(() => {
-    if (!isObjectEmpty(providerLocationInfo)) {
-      winchLocation
-        .timing({
-          latitude: providerLocationInfo?.location?.latitude || 0,
-          longitude: providerLocationInfo?.location?.longitude || 0,
-          duration: 2000,
-          toValue: 0,
-          useNativeDriver: false,
-          latitudeDelta: 1,
-          longitudeDelta: 1,
-        })
-        .start(() => {
-          setTimeout(
-            () =>
-              mapRef?.current?.fitToCoordinates(location, {
-                animated: true,
-                edgePadding: {
-                  top: 50,
-                  right: 50,
-                  bottom: 400,
-                  left: 50,
-                },
-              }),
-            200,
-          );
-        });
-    }
-  }, [providerLocationInfo.location, winchLocation]);
-
   return (
     <SafeView style={{flex: 1}}>
-      <Animated ref={mapRef} style={{flex: 1}} loadingEnabled provider="google">
+      <MapView ref={mapRef} style={{flex: 1}} loadingEnabled provider="google">
         {userLocationInfo.location && winchLocation ? (
           <>
             <Marker coordinate={userLocationInfo?.location} identifier="User">
@@ -141,7 +108,7 @@ const Map = () => {
             <MarkerAnimated
               coordinate={winchLocation}
               identifier="Winch"
-              rotation={214 + (providerLocationInfo.heading || 0)}
+              rotation={145 - (providerLocationInfo.heading || 0)}
             >
               <CarIcon width="32" height="36" />
             </MarkerAnimated>
@@ -153,7 +120,6 @@ const Map = () => {
               strokeWidth={4}
               strokeColor={theme.COLORS.PURPLE_400}
               onReady={result => {
-                console.log(result);
                 setProviderLocationInfo(oldService => ({
                   ...oldService,
                   distance: `${result.distance.toFixed(1)} km`,
@@ -162,6 +128,15 @@ const Map = () => {
                   location: result.coordinates[result.coordinates.length - 1],
                 }));
                 setLocation(result.coordinates);
+                mapRef?.current?.fitToCoordinates(result.coordinates, {
+                  animated: true,
+                  edgePadding: {
+                    top: 50,
+                    right: 50,
+                    bottom: 400,
+                    left: 50,
+                  },
+                });
               }}
               onError={errorMessage => {
                 setError(errorMessage);
@@ -169,13 +144,12 @@ const Map = () => {
             />
           </>
         ) : null}
-      </Animated>
+      </MapView>
       {isObjectEmpty(userLocationInfo) ? <ModalAddressSearch /> : null}
       {loading ? <ModalLoading /> : null}
       {!isObjectEmpty(userLocationInfo) &&
       !isObjectEmpty(providerLocationInfo) ? (
         <ModalPanel
-          theme={theme}
           userLocationAddress={userLocationInfo.address}
           providerLocationAddress={providerLocationInfo.address}
           distance={providerLocationInfo.distance}

@@ -21,6 +21,7 @@ const ModalAddressSearch = () => {
       flex: 1,
       borderWidth: 1,
       marginHorizontal: 15,
+      color: theme.COLORS.GRAY_1000,
     },
     container: {
       paddingTop: 20,
@@ -28,7 +29,9 @@ const ModalAddressSearch = () => {
       width: '90%',
       backgroundColor: theme.COLORS.WHITE,
     },
-
+    description: {
+      color: theme.COLORS.GRAY_1000,
+    },
     textInputContainer: {
       flexDirection: 'row',
     },
